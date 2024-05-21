@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka-producer
+  labels:
+    app: kafka-producer
+spec:
+  serviceName: kafka-producer
+  replicas: 5
+  selector:
+    matchLabels:
+      app: {{ include "kafka-producer.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "kafka-producer.name" . }}
+    spec:
+      containers:
+        - name: kafka-producer
+          image: kafka-producer:lastest
+          ports:
+              - containerPort: 定义port
+      initContainers:
+        - name: temporal-init
+          image: kafka-producer:lastest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              if [[ $HOSTNAME == kafka-producer; 
+              then
+                ./kafka-producer

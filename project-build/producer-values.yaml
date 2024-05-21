@@ -1,0 +1,11 @@
+replicaCount: 5
+primaryReplicaIndex: 0
+
+image:
+  repository: your-docker-repo/kafka-producer
+  tag: latest
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 8081

@@ -11,31 +11,16 @@ if ! command -v tctl &> /dev/null; then
     echo "Temporal Server not found. Installing Temporal Server..."
     helm repo add temporal https://helm.temporal.io
     helm repo update
-    kubectl create namespace temporal
-    helm install temporal-server temporal/temporal \
-        --namespace temporal \
-        --set server.config.persistence.default.persistenceType=mysql \
-        --set server.config.persistence.default.mysql.host=mysql \
-        --set server.config.persistence.default.mysql.port=3306 \
-        --set server.config.persistence.default.mysql.user=root \
-        --set server.config.persistence.default.mysql.password=yourpassword
-fi
-
-if ! command -v zookeeper &> /dev/null; then
-    echo "ZooKeeper not found. Installing ZooKeeper..."
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-    helm repo update
-    helm install zookeeper bitnami/zookeeper
+    kubectl create namespace solution
+    helm install my-temporal temporal/temporal --namespace solution --values temporal-values.yaml
 fi
 
 # Check if Kafka is installed and install if not
 if ! command -v kafka-topics.sh &> /dev/null; then
     echo "Kafka not found. Installing Kafka..."
-    helm repo add bitnami https://charts.bitnami.com/bitnami
+    helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
     helm repo update
-    helm install kafka bitnami/kafka \
-        --set zookeeper.enabled=false \
-        --set externalZookeeper.servers=zookeeper:2181
+    helm install my-kafka confluentinc/cp-helm-charts --namespace solution --values kafka-values.yaml
 fi
 
 # Build Docker image for kafka-consumer using the project's Dockerfile

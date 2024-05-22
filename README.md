@@ -1,1 +1,0 @@
-build in project-build solution_service_run.sh

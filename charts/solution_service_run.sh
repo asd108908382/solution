@@ -38,31 +38,18 @@ if ! command -v kafka-topics.sh &> /dev/null; then
         --set externalZookeeper.servers=zookeeper:2181
 fi
 
-# Build Docker image for kafka-producer using the project's Dockerfile
-echo "Building Docker image for kafka-producer..."
-docker build -t your-docker-repo/kafka-producer:latest .
-
-# Construct Helm chart for kafka-producer app
-echo "Constructing Helm chart for kafka-producer..."
-helm create kafka-producer
-# Update the necessary files in the helm chart (producer-values.yaml, producer-deployment.yaml) with your desired configurations
-
-# Deploy kafka-producer app in the Kubernetes cluster
-echo "Deploying kafka-producer app in Kubernetes cluster..."
-helm install kafka-producer ./kafka-producer
-
 # Build Docker image for kafka-consumer using the project's Dockerfile
-echo "Building Docker image for kafka-consumer..."
-docker build -t your-docker-repo/kafka-consumer:latest .
+echo "Building Docker image for solution..."
+docker build -t your-docker-repo/solution:latest .
 
 # Construct Helm chart for kafka-consumer app
-echo "Constructing Helm chart for kafka-consumer..."
-helm create kafka-consumer
-# Update the necessary files in the helm chart (consumer-values.yaml, consumer-deployment.yaml) with your desired configurations
+echo "Constructing Helm chart for solution..."
+helm create solution
+# Update the necessary files in the helm chart (solution-values.yaml, solution-deployment.yaml) with your desired configurations
 
 # Deploy kafka-consumer app in the Kubernetes cluster
-echo "Deploying kafka-consumer app in Kubernetes cluster..."
-helm install kafka-producer ./kafka-consumer
+echo "Deploying solution app in Kubernetes cluster..."
+helm install solution ./solution
 
 echo "Deployment completed successfully!"
 

@@ -11,16 +11,16 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # 复制项目源码
-COPY . .
+COPY solution .
 
 # 编译构建应用程序
-RUN go build -o /kafka-producer .
+RUN go build -o /solution .
 
 # 创建最终镜像，用于运行应用程序
 FROM alpine
 
 # 从构建阶段复制编译好的应用程序
-COPY --from=builder /kafka-producer /kafka-producer
+COPY --from=builder /solution /solution
 
 # 设置容器启动时运行的命令
-ENTRYPOINT ["/kafka-producer"]
+ENTRYPOINT ["/solution"]

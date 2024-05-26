@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
+	"google.golang.org/protobuf/types/known/durationpb"
 	"log"
 	"os"
 	"time"
@@ -18,14 +19,14 @@ type CronResult struct {
 
 func CreatClient() (client.Client, error) {
 	c, err := client.Dial(client.Options{
-		HostPort: "10.100.165.249:7233",
+		//HostPort: "10.100.165.249:7233",
 	})
 	namespaceClient, err := client.NewNamespaceClient(client.Options{
-		HostPort:  "10.100.165.249:7233",
-		Namespace: "default",
+		HostPort: "10.100.165.249:7233",
 	})
 	err = namespaceClient.Register(context.Background(), &workflowservice.RegisterNamespaceRequest{
-		Namespace: "default",
+		Namespace:                        "default",
+		WorkflowExecutionRetentionPeriod: durationpb.New(time.Hour * 24 * 30),
 	})
 	return c, err
 }

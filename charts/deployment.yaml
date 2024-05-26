@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solution
+  labels:
+    app: solution
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: solution
+  template:
+    metadata:
+      labels:
+        app: solution
+    spec:
+      containers:
+        - name: solution
+          image: public.ecr.aws/d0x9e6x9/solution:latest
+          ports:
+            - containerPort: 8080

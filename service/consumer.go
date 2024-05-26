@@ -22,6 +22,6 @@ func InitConsumer(adr string, topic string, ctx context.Context) {
 		if err != nil {
 			//错误处理
 		}
-		log.Fatalln("Message at offset %d: %s\n", message.Offset, message.Value)
+		log.Println("Message at offset %d: %s\n", message.Offset, message.Value)
 	}
 }

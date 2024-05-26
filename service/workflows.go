@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -10,75 +11,166 @@ import (
 	"time"
 )
 
+type CronResult struct {
+	RunTime time.Time
+}
+
 func CreatClient() (client.Client, error) {
 	c, err := client.NewClient(client.Options{
-		HostPort: client.DefaultHostPort,
+		//HostPort: "10.100.115.110:7233",
+
 	})
 	return c, err
 }
 
-func CreatProducerWorkflowAndRegister(c client.Client) worker.Worker {
-	// create worker
-	w := worker.New(c, "my-group", worker.Options{})
+func InitProducerWorkFlow(err error, c client.Client) {
+	workflowID := "producer-parent-workflow"
+	workflowOptions := client.StartWorkflowOptions{
+		ID:                    workflowID,
+		TaskQueue:             "workflow",
+		CronSchedule:          "* * * * *",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
 
-	// register workflow active
-	w.RegisterWorkflow(ProducerWorkflowFn)
-	w.RegisterActivity(ProducerChildActiveFn)
-	return w
+	workflowRun, err := c.ExecuteWorkflow(context.Background(), workflowOptions, ProducerWorkflowFn)
+	if err != nil {
+		log.Fatalln("Unable to execute workflow", err)
+	}
+	log.Println("Started workflow",
+		"WorkflowID", workflowRun.GetID(), "RunID", workflowRun.GetRunID())
 }
 
-func ProducerChildActiveFn() error {
-	background := context.Background()
-	InitProducer(GenConf(), "demo", background)
+func ProducerChildWorkflowFn(ctx workflow.Context) (string, error) {
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx1 := workflow.WithActivityOptions(ctx, ao)
+	var result string
+	// Start from 0 for first cron job
+	lastRunTime := time.Time{}
+	// Check to see if there was a previous cron job
+	if workflow.HasLastCompletionResult(ctx) {
+		var lastResult CronResult
+		if err := workflow.GetLastCompletionResult(ctx, &lastResult); err == nil {
+			lastRunTime = lastResult.RunTime
+		}
+	}
+	thisRunTime := workflow.Now(ctx)
+
+	err := workflow.ExecuteActivity(ctx1, ProducerChildActiveFn, lastRunTime, thisRunTime).Get(ctx, &result)
+	if err != nil {
+		//
+	}
+	return result, nil
+}
+
+func ProducerChildActiveFn(ctx context.Context, lastRunTime, thisRunTime time.Time) error {
+	InitProducer(GenConf(), "demo", ctx)
 	return nil
 }
 
-func ProducerWorkflowFn(ctx workflow.Context) error {
+func ProducerWorkflowFn(ctx workflow.Context) (string, error) {
 	workflow.GetLogger(ctx).Info("Hello, Temporal!")
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
-		WorkflowID:         "child-workflow",
-		WorkflowRunTimeout: time.Minute,
+		WorkflowID:         "producer-child-workflow",
+		WorkflowRunTimeout: 2 * time.Minute,
 	}
 
+	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	var result string
 	for i := 0; i < 200; i++ {
-		workflow.ExecuteChildWorkflow(ctx, childWorkflowOptions, ProducerChildActiveFn)
+		err := workflow.ExecuteChildWorkflow(ctx, ProducerChildWorkflowFn).Get(ctx, &result)
+		if err != nil {
+			//
+		}
+	}
+	return result, nil
+
+}
+
+func ConsumerChildWorkflowFn(ctx workflow.Context) error {
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+	ctx1 := workflow.WithActivityOptions(ctx, ao)
+	// Start from 0 for first cron job
+	lastRunTime := time.Time{}
+	// Check to see if there was a previous cron job
+	if workflow.HasLastCompletionResult(ctx) {
+		var lastResult CronResult
+		if err := workflow.GetLastCompletionResult(ctx, &lastResult); err == nil {
+			lastRunTime = lastResult.RunTime
+		}
+	}
+	thisRunTime := workflow.Now(ctx)
+	err := workflow.ExecuteActivity(ctx1, ConsumerChildActiveFn, lastRunTime, thisRunTime).Get(ctx, nil)
+	if err != nil {
+		// Cron job failed
+		// Next cron will still be scheduled by the Server
+		workflow.GetLogger(ctx).Error("Cron job failed.", "Error", err)
+		return nil
 	}
 	return nil
-
 }
 
-func CreateConsumerWorkflowAndRegister(c client.Client) worker.Worker {
-	// 创建工作流任务工作者
-	w := worker.New(c, "my-group", worker.Options{})
-
-	// 注册工作流和子工作流
-	w.RegisterWorkflow(ConsumerWorkflowFn)
-	w.RegisterActivity(ConsumerChildActiveFn)
-	return w
-}
-
-func ConsumerChildActiveFn() error {
-	background := context.Background()
-	InitConsumer(GenConf(), "deom", background)
+func ConsumerChildActiveFn(ctx context.Context, lastRunTime, thisRunTime time.Time) error {
+	InitConsumer(GenConf(), "demo", ctx)
 	return nil
 }
 
 func ConsumerWorkflowFn(ctx workflow.Context) error {
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
-		WorkflowID:         "child-workflow",
-		WorkflowRunTimeout: time.Minute,
+		WorkflowID:         "workflow",
+		WorkflowRunTimeout: 2 * time.Minute,
 	}
+	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	var result string
 	for i := 0; i < 200; i++ {
-		log.Println("execute word {}", i)
-		workflow.ExecuteActivity(ctx, childWorkflowOptions, ConsumerChildActiveFn)
+		err := workflow.ExecuteChildWorkflow(ctx, ConsumerChildWorkflowFn).Get(ctx, &result)
+		if err != nil {
+			//
+		}
 	}
 	return nil
+}
+
+func InitConsumerWorkFlow(err error, c client.Client) {
+	workflowID := "consumer-parent-workflow"
+	workflowOptions := client.StartWorkflowOptions{
+		ID:                    workflowID,
+		TaskQueue:             "workflow",
+		CronSchedule:          "*/2 * * * *",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	workflowRun, err := c.ExecuteWorkflow(context.Background(), workflowOptions, ConsumerWorkflowFn)
+	if err != nil {
+		log.Fatalln("Unable to execute workflow", err)
+	}
+	log.Println("Started workflow",
+		"WorkflowID", workflowRun.GetID(), "RunID", workflowRun.GetRunID())
 }
 
 func GenConf() string {
 	env, b := os.LookupEnv("KAFKA_HOME")
 	if b {
 		//
+		return "10.100.216.49"
 	}
 	return env
+}
+
+func WorkflowRegister(c client.Client) worker.Worker {
+	// 创建工作流任务工作者
+	w := worker.New(c, "workflow", worker.Options{})
+
+	// 注册工作流和子工作流
+	w.RegisterWorkflow(ConsumerWorkflowFn)
+	w.RegisterWorkflow(ConsumerChildWorkflowFn)
+	w.RegisterWorkflow(ProducerWorkflowFn)
+	w.RegisterWorkflow(ProducerChildWorkflowFn)
+	w.RegisterActivity(ConsumerChildActiveFn)
+	w.RegisterActivity(ProducerChildActiveFn)
+	return w
 }

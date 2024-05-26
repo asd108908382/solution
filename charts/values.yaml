@@ -1,0 +1,21 @@
+replicaCount: 5
+primaryReplicaIndex: 0
+
+image:
+  repository: public.ecr.aws/d0x9e6x9/solution
+  tag: latest
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 8080
+
+
+serviceAccount:
+  create: false
+
+ingress:
+  enabled: false
+
+autoscaling:
+  enabled: false

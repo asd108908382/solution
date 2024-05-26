@@ -1,47 +1,36 @@
 #!/bin/bash
 
 # Check if Helm is installed and install if not
-if ! command -v helm &> /dev/null; then
-    echo "Helm not found. Installing Helm..."
-    curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-fi
+echo "Installing Helm..."
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-# Check if Temporal Server is installed and install if not
-if ! command -v tctl &> /dev/null; then
-    echo "Temporal Server not found. Installing Temporal Server..."
-    helm repo add temporal https://helm.temporal.io
-    helm repo update
-    kubectl create namespace solution
-    helm install my-temporal temporal/temporal --namespace solution --values temporal-values.yaml
-fi
+echo "Installing Temporal Server..."
+helm repo add temporalio https://temporalio.github.io/helm-charts
+helm repo update
+kubectl create namespace solution
+helm install temporal-server temporalio/temporal --set server.replicaCount=1 \
+      --set cassandra.config.cluster_size=1 \
+      --set prometheus.enabled=false \
+      --set grafana.enabled=false \
+      --set elasticsearch.enabled=true \
+      --set elasticsearch.replicas=1
 
-# Check if Kafka is installed and install if not
-if ! command -v kafka-topics.sh &> /dev/null; then
-    echo "Kafka not found. Installing Kafka..."
-    helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
-    helm repo update
-    helm install my-kafka confluentinc/cp-helm-charts --namespace solution --values kafka-values.yaml
-fi
+echo " Installing Kafka"
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install kafka bitnami/kafka --set persistence.enabled=true
 
 # Build Docker image for kafka-consumer using the project's Dockerfile
 echo "Building Docker image for solution..."
-docker build -t your-docker-repo/solution:latest .
-
+docker build -t solution . --platform=linux/amd64
+docker tag solution:latest public.ecr.aws/d0x9e6x9/solution:latest
+docker push public.ecr.aws/d0x9e6x9/solution:latest
 # Construct Helm chart for kafka-consumer app
 echo "Constructing Helm chart for solution..."
-helm create solution
-# Update the necessary files in the helm chart (solution-values.yaml, solution-deployment.yaml) with your desired configurations
+helm create solution-charts
+cp charts/values.yaml solution-charts
+cp charts/deployment.yaml solution-charts/templates
 
-# Deploy kafka-consumer app in the Kubernetes cluster
 echo "Deploying solution app in Kubernetes cluster..."
-helm install solution ./solution
-
+helm upgrade --install solution solution-charts
 echo "Deployment completed successfully!"
-
-# last create our schedule task by cron
-temporal schedule create \
-    --schedule-id 'your-schedule-id' \
-    --cron '3 11 * * Fri' \
-    --workflow-id 'your-workflow-id' \
-    --task-queue 'your-task-queue' \
-    --workflow-type 'YourWorkflowType'

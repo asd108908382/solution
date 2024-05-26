@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/segmentio/kafka-go"
+	"log"
 	"time"
 )
 
@@ -21,7 +22,6 @@ func InitProducer(adr string, topic string, ctx context.Context) {
 
 		}
 	}(&writer)
-
 	err := writer.WriteMessages(ctx, kafka.Message{
 		Key:   []byte(time.Now().String()),
 		Value: []byte(time.Now().String() + "hello world"),
@@ -29,5 +29,6 @@ func InitProducer(adr string, topic string, ctx context.Context) {
 	if err != nil {
 		//retry or other?
 	}
+	log.Print("success producer")
 
 }

@@ -1,9 +1,0 @@
----
-server:
-  replicas: 3  # Temporal Server 副本数量
-  persistence:
-    enabled: true  # 启用持久化存储
-    size: 10Gi  # 持久化存储大小
-
-web:
-  enabled: true  # 启用 Temporal Web UI

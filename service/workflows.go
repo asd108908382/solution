@@ -19,10 +19,10 @@ type CronResult struct {
 
 func CreatClient() (client.Client, error) {
 	c, err := client.Dial(client.Options{
-		HostPort: "10.100.165.249:7233",
+		HostPort: "10.100.185.2:7233",
 	})
 	namespaceClient, err := client.NewNamespaceClient(client.Options{
-		HostPort: "10.100.165.249:7233",
+		HostPort: "10.100.185.2:7233",
 	})
 	err = namespaceClient.Register(context.Background(), &workflowservice.RegisterNamespaceRequest{
 		Namespace:                        "default",

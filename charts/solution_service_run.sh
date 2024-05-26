@@ -9,7 +9,7 @@ helm repo add temporalio https://temporalio.github.io/helm-charts
 helm repo update
 
 helm install temporal-server temporalio/temporal --set server.replicaCount=1 \
-      --set cassandra.config.cluster_size=1 \
+      --set cassandra.config.cluster_size=3 \
       --set prometheus.enabled=false \
       --set grafana.enabled=false \
       --set elasticsearch.enabled=true \

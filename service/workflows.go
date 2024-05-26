@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -18,6 +19,13 @@ type CronResult struct {
 func CreatClient() (client.Client, error) {
 	c, err := client.Dial(client.Options{
 		HostPort: "10.100.165.249:7233",
+	})
+	namespaceClient, err := client.NewNamespaceClient(client.Options{
+		HostPort:  "10.100.165.249:7233",
+		Namespace: "default",
+	})
+	err = namespaceClient.Register(context.Background(), &workflowservice.RegisterNamespaceRequest{
+		Namespace: "default",
 	})
 	return c, err
 }

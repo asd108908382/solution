@@ -17,7 +17,7 @@ type CronResult struct {
 
 func CreatClient() (client.Client, error) {
 	c, err := client.Dial(client.Options{
-		HostPort: "10.100.115.110:7233",
+		HostPort: "10.100.165.249:7233",
 	})
 	return c, err
 }

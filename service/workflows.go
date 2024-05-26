@@ -19,7 +19,7 @@ type CronResult struct {
 
 func CreatClient() (client.Client, error) {
 	c, err := client.Dial(client.Options{
-		//HostPort: "10.100.165.249:7233",
+		HostPort: "10.100.165.249:7233",
 	})
 	namespaceClient, err := client.NewNamespaceClient(client.Options{
 		HostPort: "10.100.165.249:7233",
@@ -28,6 +28,9 @@ func CreatClient() (client.Client, error) {
 		Namespace:                        "default",
 		WorkflowExecutionRetentionPeriod: durationpb.New(time.Hour * 24 * 30),
 	})
+	if err.Error() == "Namespace already exists." {
+		return c, nil
+	}
 	return c, err
 }
 

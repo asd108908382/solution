@@ -132,7 +132,7 @@ func ConsumerChildActiveFn(ctx context.Context, lastRunTime, thisRunTime time.Ti
 
 func ConsumerWorkflowFn(ctx workflow.Context) error {
 	childWorkflowOptions := workflow.ChildWorkflowOptions{
-		WorkflowID:         "workflow",
+		WorkflowID:         "consumer-child-workflow",
 		WorkflowRunTimeout: 2 * time.Minute,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)

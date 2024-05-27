@@ -120,12 +120,18 @@ func ConsumerChildWorkflowFn(ctx workflow.Context) (string, error) {
 	var result string
 	err := workflow.ExecuteActivity(ctx1, ConsumerChildActiveFn, lastRunTime, thisRunTime).Get(ctx, &result)
 	if err != nil {
+		log.Fatalln(err)
+		return "error", err
 	}
 	return result, nil
 }
 
 func ConsumerChildActiveFn(ctx context.Context, lastRunTime, thisRunTime time.Time) error {
-	InitConsumer(GenConf(), "demo", ctx)
+	//err := InitConsumer(GenConf(), "demo", ctx)
+	//if err != nil {
+	//	log.Fatalln(err)
+	//	return err
+	//}
 	return nil
 }
 

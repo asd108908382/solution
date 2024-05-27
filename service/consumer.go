@@ -7,23 +7,38 @@ import (
 	"time"
 )
 
-func InitConsumer(adr string, topic string, ctx context.Context) {
-	readerConfig := kafka.ReaderConfig{
-		Brokers:        []string{adr},
-		Topic:          topic,
-		CommitInterval: 1 * time.Second,
-		GroupID:        "demo-consumer",
-		StartOffset:    kafka.LastOffset,
+func InitConsumer(adr string, topic string, ctx context.Context) error {
+	r := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:  []string{adr},
+		Topic:    topic,
+		GroupID:  "temporal-group", // 确保每个工作流实例有一个唯一的组ID
+		MinBytes: 10e3,             // 10KB
+		MaxBytes: 10e6,             // 10MB
+		MaxWait:  2 * time.Millisecond,
+	})
+
+	defer func(r *kafka.Reader) {
+		err := r.Close()
+		if err != nil {
+
+		}
+	}(r)
+
+	count := 0
+	for count < 2 {
+		select {
+		case <-ctx.Done():
+			return nil // 上下文被取消，结束消费
+		default:
+			msg, err := r.ReadMessage(ctx)
+			if err != nil {
+				return err
+			}
+			log.Printf("Consumed message in sub-workflow: %s\n", string(msg.Value))
+			count++
+		}
 	}
-	reader := kafka.NewReader(readerConfig)
-	m, err := reader.FetchMessage(ctx)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-	log.Printf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
-	if err := reader.CommitMessages(ctx, m); err != nil {
-		log.Fatal("failed to commit messages:", err)
-	}
+
+	return nil
 
 }

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/segmentio/kafka-go"
 	"log"
 	"time"
@@ -39,5 +38,5 @@ func InitConsumer(adr string, topic string, ctx context.Context) {
 		log.Fatalf("Failed to close reader: %v", err)
 	}
 
-	fmt.Println("Consumer closed")
+	log.Println("Consumer closed")
 }

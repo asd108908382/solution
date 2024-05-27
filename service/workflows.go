@@ -117,7 +117,8 @@ func ConsumerChildWorkflowFn(ctx workflow.Context) error {
 		}
 	}
 	thisRunTime := workflow.Now(ctx)
-	err := workflow.ExecuteActivity(ctx1, ConsumerChildActiveFn, lastRunTime, thisRunTime).Get(ctx, nil)
+	var result string
+	err := workflow.ExecuteActivity(ctx1, ConsumerChildActiveFn, lastRunTime, thisRunTime).Get(ctx, &result)
 	if err != nil {
 		// Cron job failed
 		// Next cron will still be scheduled by the Server

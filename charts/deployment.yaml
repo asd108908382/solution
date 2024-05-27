@@ -21,6 +21,8 @@ spec:
           env:
             - name: ROLE
               value: "register"
+            - name: KAFKA_HOME
+              value: "kafka-service:9092"
 
 ---
 apiVersion: apps/v1
@@ -46,3 +48,5 @@ spec:
           env:
             - name: ROLE
               value: "worker"
+            - name: KAFKA_HOME
+              value: "kafka-service:9092"

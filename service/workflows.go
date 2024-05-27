@@ -40,7 +40,7 @@ func InitProducerWorkFlow(err error, c client.Client) {
 	workflowID := "producer-parent-workflow"
 	workflowOptions := client.StartWorkflowOptions{
 		ID:                    workflowID,
-		TaskQueue:             "workflow",
+		TaskQueue:             "producer-workflow",
 		CronSchedule:          "* * * * *",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
@@ -152,7 +152,7 @@ func InitConsumerWorkFlow(err error, c client.Client) {
 	workflowID := "consumer-parent-workflow"
 	workflowOptions := client.StartWorkflowOptions{
 		ID:                    workflowID,
-		TaskQueue:             "workflow",
+		TaskQueue:             "consumer-workflow",
 		CronSchedule:          "*/2 * * * *",
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}

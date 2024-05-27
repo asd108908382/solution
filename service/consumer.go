@@ -18,6 +18,7 @@ func InitConsumer(adr string, topic string, ctx context.Context) {
 	reader := kafka.NewReader(readerConfig)
 	m, err := reader.FetchMessage(ctx)
 	if err != nil {
+		log.Fatalln(err)
 		return
 	}
 	log.Printf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))

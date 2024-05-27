@@ -36,7 +36,7 @@ func GetInstance() *Consumer {
 					Dialer: &kafka.Dialer{
 						SASLMechanism: plain.Mechanism{
 							Username: "user1",
-							Password: "eNlA6pwOgR%",
+							Password: "eNlA6pwOgR",
 						},
 					},
 				}),

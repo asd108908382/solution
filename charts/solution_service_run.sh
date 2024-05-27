@@ -25,7 +25,7 @@ helm install kafka bitnami/kafka --set persistence.enabled=true
 
 # Build Docker image for kafka-consumer using the project's Dockerfile
 echo "Building Docker image for solution..."
-docker build -t solution . --platform=linux/amd64
+docker build -t solution .
 docker tag solution:latest public.ecr.aws/d0x9e6x9/solution:latest
 docker push public.ecr.aws/d0x9e6x9/solution:latest
 # Construct Helm chart for kafka-consumer app

@@ -17,11 +17,9 @@ func InitConsumer(adr string, topic string, ctx context.Context) {
 	}
 	reader := kafka.NewReader(readerConfig)
 	defer reader.Close()
-	for true {
-		message, err := reader.ReadMessage(ctx)
-		if err != nil {
-			//错误处理
-		}
-		log.Println("Message at offset %d: %s\n", message.Offset, message.Value)
+	message, err := reader.ReadMessage(ctx)
+	if err != nil {
+		//错误处理
 	}
+	log.Println("Message at offset %d: %s\n", message.Offset, message.Value)
 }

@@ -16,7 +16,12 @@ func InitConsumer(adr string, topic string, ctx context.Context) {
 		StartOffset:    kafka.LastOffset,
 	}
 	reader := kafka.NewReader(readerConfig)
-	defer reader.Close()
+	defer func(reader *kafka.Reader) {
+		err := reader.Close()
+		if err != nil {
+
+		}
+	}(reader)
 	message, err := reader.ReadMessage(ctx)
 	if err != nil {
 		//错误处理

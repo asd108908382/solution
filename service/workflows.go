@@ -169,21 +169,28 @@ func GenConf() string {
 	env, b := os.LookupEnv("KAFKA_HOME")
 	if b {
 		//
-		return "10.100.216.49"
+		return "10.100.216.49:9092"
 	}
 	return env
 }
 
-func WorkflowRegister(c client.Client) worker.Worker {
+func ProducerWorkflowRegister(c client.Client) worker.Worker {
 	// 创建工作流任务工作者
-	w := worker.New(c, "workflow", worker.Options{})
+	w := worker.New(c, "producer-workflow", worker.Options{})
+
+	w.RegisterWorkflow(ProducerWorkflowFn)
+	w.RegisterWorkflow(ProducerChildWorkflowFn)
+	w.RegisterActivity(ProducerChildActiveFn)
+	return w
+}
+
+func ConsumerWorkflowRegister(c client.Client) worker.Worker {
+	// 创建工作流任务工作者
+	w := worker.New(c, "consumer-workflow", worker.Options{})
 
 	// 注册工作流和子工作流
 	w.RegisterWorkflow(ConsumerWorkflowFn)
 	w.RegisterWorkflow(ConsumerChildWorkflowFn)
-	w.RegisterWorkflow(ProducerWorkflowFn)
-	w.RegisterWorkflow(ProducerChildWorkflowFn)
 	w.RegisterActivity(ConsumerChildActiveFn)
-	w.RegisterActivity(ProducerChildActiveFn)
 	return w
 }

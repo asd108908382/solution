@@ -1,7 +1,6 @@
 package main
 
 import (
-	"go.temporal.io/sdk/worker"
 	"log"
 	"os"
 	"solution/service"
@@ -31,11 +30,18 @@ func workerInit() {
 	if err != nil {
 		log.Fatalln("无法创建 Temporal 客户端", err)
 	}
-	w := service.WorkflowRegister(c)
-
-	err = w.Run(worker.InterruptCh())
+	w := service.ProducerWorkflowRegister(c)
+	w1 := service.ConsumerWorkflowRegister(c)
+	err = w.Start()
 	if err != nil {
-		log.Fatalln("Unable to start worker", err)
+		log.Fatalln("无法启动生产者工作流", err)
 	}
+	defer w.Stop()
+	err = w1.Start()
+	if err != nil {
+		log.Fatalln("无法启动消费者工作流", err)
+	}
+	defer w1.Stop()
+	select {}
 
 }

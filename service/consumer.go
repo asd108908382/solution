@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/sasl/plain"
 	"log"
 	"sync"
 )
@@ -25,20 +24,12 @@ func GetInstance() *Consumer {
 		defer lock.Unlock()
 		if singleInstance == nil {
 			fmt.Println("Creating single instance now.")
-
 			singleInstance = &Consumer{
 				Reader: *kafka.NewReader(kafka.ReaderConfig{
 					Brokers:  []string{GenConf()},
 					Topic:    "demo",
 					GroupID:  "test",
-					MinBytes: 10e3, // 10KB
 					MaxBytes: 10e6, // 10MB
-					Dialer: &kafka.Dialer{
-						SASLMechanism: plain.Mechanism{
-							Username: "user1",
-							Password: "eNlA6pwOgR",
-						},
-					},
 				}),
 			}
 		} else {
@@ -51,7 +42,7 @@ func GetInstance() *Consumer {
 	return singleInstance
 }
 
-func InitConsumer(ctx context.Context) error {
+func ConsumerMessage(ctx context.Context) error {
 	r := GetInstance()
 	count := 0
 	for count < 2 {

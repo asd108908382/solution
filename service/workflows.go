@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/segmentio/kafka-go"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
@@ -127,20 +126,8 @@ func ConsumerChildWorkflowFn(ctx workflow.Context) (string, error) {
 	return result, nil
 }
 
-func initReader() *kafka.Reader {
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  []string{GenConf()},
-		Topic:    "demo",
-		GroupID:  "temporal-group", // 确保每个工作流实例有一个唯一的组ID
-		MinBytes: 10e3,             // 10KB
-		MaxBytes: 10e6,             // 10MB
-		MaxWait:  2 * time.Millisecond,
-	})
-	return reader
-}
-
 func ConsumerChildActiveFn(ctx context.Context, lastRunTime, thisRunTime time.Time) error {
-	err := InitConsumer(ctx)
+	err := ConsumerMessage(ctx)
 	if err != nil {
 		log.Fatalln(err)
 		return err
@@ -185,7 +172,8 @@ func GenConf() string {
 	env, b := os.LookupEnv("KAFKA_HOME")
 	if !b {
 		//
-		return "10.100.252.225:9092"
+		log.Println("KAFKA_HOME is not set")
+		return "kafka-service.default.svc.cluster.local:9092"
 	}
 	return env
 }

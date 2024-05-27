@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+data:
+  server.properties: |-
+    listeners=PLAINTEXT://0.0.0.0:9092
+    advertised.listeners=PLAINTEXT://kafka-service.default.svc.cluster.local:9092

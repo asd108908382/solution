@@ -30,6 +30,8 @@ func CreatClient() (client.Client, error) {
 	})
 	if err.Error() == "Namespace already exists." {
 		return c, nil
+	} else if err != nil {
+		return c, err
 	}
 	return c, err
 }

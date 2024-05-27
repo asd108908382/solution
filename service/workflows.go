@@ -102,7 +102,7 @@ func ProducerWorkflowFn(ctx workflow.Context) (string, error) {
 
 }
 
-func ConsumerChildWorkflowFn(ctx workflow.Context) error {
+func ConsumerChildWorkflowFn(ctx workflow.Context) (string, error) {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
 	}
@@ -120,12 +120,8 @@ func ConsumerChildWorkflowFn(ctx workflow.Context) error {
 	var result string
 	err := workflow.ExecuteActivity(ctx1, ConsumerChildActiveFn, lastRunTime, thisRunTime).Get(ctx, &result)
 	if err != nil {
-		// Cron job failed
-		// Next cron will still be scheduled by the Server
-		workflow.GetLogger(ctx).Error("Cron job failed.", "Error", err)
-		return nil
 	}
-	return nil
+	return result, nil
 }
 
 func ConsumerChildActiveFn(ctx context.Context, lastRunTime, thisRunTime time.Time) error {
@@ -168,7 +164,7 @@ func InitConsumerWorkFlow(err error, c client.Client) {
 
 func GenConf() string {
 	env, b := os.LookupEnv("KAFKA_HOME")
-	if b {
+	if !b {
 		//
 		return "10.100.216.49:9092"
 	}

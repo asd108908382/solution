@@ -10,7 +10,7 @@ import (
 func main() {
 	if os.Getenv("ROLE") == "register" {
 		register()
-		select {}
+		workerInit()
 	} else {
 		workerInit()
 	}

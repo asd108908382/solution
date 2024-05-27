@@ -16,6 +16,7 @@ func InitProducer(adr string, topic string, ctx context.Context) {
 		RequiredAcks:           kafka.RequireNone,
 		AllowAutoTopicCreation: true,
 	}
+
 	defer func(writer *kafka.Writer) {
 		err := writer.Close()
 		if err != nil {

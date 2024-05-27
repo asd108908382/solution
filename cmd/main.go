@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	service.GetInstance()
 	if os.Getenv("ROLE") == "register" {
 		register()
 		workerInit()
@@ -25,7 +26,6 @@ func register() {
 }
 
 func workerInit() {
-
 	c, err := service.CreatClient()
 	if err != nil {
 		log.Fatalln("无法创建 Temporal 客户端", err)

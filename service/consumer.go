@@ -26,5 +26,6 @@ func InitConsumer(adr string, topic string, ctx context.Context) {
 	if err != nil {
 		//错误处理
 	}
+	err = reader.CommitMessages(ctx, message)
 	log.Println("Message at offset %d: %s\n", message.Offset, message.Value)
 }

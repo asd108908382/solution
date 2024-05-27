@@ -11,9 +11,8 @@ helm repo update
 helm install temporal-server temporalio/temporal \
       --set server.replicaCount=1 \
       --set cassandra.config.cluster_size=1 \
-      --set cassandra.config.max_heap_size=4096M \
-      --set cassandra.config.heap_new_size=2048M \
-      --set cassandra.config.memory=1Gi \
+      --set cassandra.config.max_heap_size=1024M \
+      --set cassandra.config.heap_new_size=512M \
       --set prometheus.enabled=false \
       --set grafana.enabled=false \
       --set elasticsearch.enabled=true \

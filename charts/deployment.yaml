@@ -1,21 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: solution
+  name: solution-master
   labels:
-    app: solution
+    app.kubernetes.io/name: solution
+    app.kubernetes.io/managed-by: Helm
 spec:
-  replicas: 5
+  replicas: {{ .Values.replicas.master }}
   selector:
     matchLabels:
-      app: solution
+      app.kubernetes.io/name: solution
   template:
     metadata:
       labels:
-        app: solution
+        app.kubernetes.io/name: solution
     spec:
       containers:
         - name: solution
-          image: public.ecr.aws/d0x9e6x9/solution:latest
-          ports:
-            - containerPort: 8080
+          image: {{ $image }}
+          env:
+            - name: ROLE
+              value: "register"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solution-worker
+  labels:
+    app.kubernetes.io/name: solution
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: {{ .Values.replicas.worker }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: solution
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: solution
+    spec:
+      containers:
+        - name: solution
+          image: {{ $image }}
+          env:
+            - name: ROLE
+              value: "worker"

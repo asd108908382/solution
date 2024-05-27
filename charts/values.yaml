@@ -1,5 +1,6 @@
-replicaCount: 5
-primaryReplicaIndex: 0
+replicas:
+  register: 1
+  worker: 4
 
 image:
   repository: public.ecr.aws/d0x9e6x9/solution

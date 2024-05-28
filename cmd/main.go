@@ -15,7 +15,6 @@ func main() {
 		//register()
 		workerInit()
 	}
-	defer service.GetInstance().ReaderInstance.Close()
 }
 
 func register() {

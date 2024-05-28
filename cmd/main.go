@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-	//service.GetInstance()
 	if os.Getenv("ROLE") == "register" {
 		register()
 		workerInit()

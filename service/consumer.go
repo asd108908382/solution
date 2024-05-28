@@ -6,6 +6,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"log"
 	"sync"
+	"time"
 )
 
 var lock = &sync.Mutex{}
@@ -43,20 +44,27 @@ func GetInstance() *Consumer {
 }
 
 func ConsumerMessage(ctx context.Context) error {
-	r := GetInstance()
-	count := 0
-	for count < 2 {
-		msg, err := r.ReadMessage(ctx)
-		if err != nil {
-			return err
-		}
-		log.Printf("Consumed message in sub-workflow: %s\n", string(msg.Value))
-		err = r.CommitMessages(ctx, msg)
-		if err != nil {
-			return err
-		}
-		count++
+	r := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:  []string{GenConf()},
+		Topic:    "demo",
+		GroupID:  "test",
+		MaxBytes: 10e6, // 10MB
+		MaxWait:  2 * time.Millisecond,
+	})
 
+	defer func(r *kafka.Reader) {
+		err := r.Close()
+		if err != nil {
+
+		}
+	}(r)
+	msg, err := r.ReadMessage(ctx)
+	if err != nil {
+		return err
+	}
+	log.Printf("Consumed message in sub-workflow: %s\n", string(msg.Value))
+	if err := r.CommitMessages(ctx, msg); err != nil {
+		return err
 	}
 	return nil
 }

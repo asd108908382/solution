@@ -19,8 +19,6 @@ func getKafkaReader() *kafka.Reader {
 			Brokers:     []string{GenConf()},
 			Topic:       "demo",
 			GroupID:     "test",
-			MinBytes:    10e3, // 10KB
-			MaxBytes:    10e6, // 10MB
 			StartOffset: kafka.LastOffset,
 		}
 		readerInstance = kafka.NewReader(config)

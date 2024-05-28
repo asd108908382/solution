@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 	"solution/service"
@@ -9,11 +8,6 @@ import (
 
 func main() {
 	service.GetInstance()
-	service.InitProducer(service.GenConf(), "demo", context.Background())
-	err := service.ConsumerMessage(context.Background())
-	if err != nil {
-		log.Fatalln(err)
-	}
 	if os.Getenv("ROLE") == "register" {
 		register()
 		workerInit()

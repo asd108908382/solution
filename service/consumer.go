@@ -12,9 +12,7 @@ import (
 var lock = &sync.Mutex{}
 
 type Consumer struct {
-
-	// kafka.Reader
-	kafka.Reader
+	ReaderInstance *kafka.Reader
 }
 
 var singleInstance *Consumer
@@ -25,15 +23,14 @@ func GetInstance() *Consumer {
 		defer lock.Unlock()
 		if singleInstance == nil {
 			fmt.Println("Creating single instance now.")
-			singleInstance = &Consumer{
-				Reader: *kafka.NewReader(kafka.ReaderConfig{
-					Brokers:  []string{GenConf()},
-					Topic:    "demo",
-					GroupID:  "test",
-					MaxBytes: 10e6, // 10MB
-					MaxWait:  5 * time.Minute,
-				}),
-			}
+			r := kafka.NewReader(kafka.ReaderConfig{
+				Brokers:  []string{GenConf()},
+				Topic:    "demo",
+				GroupID:  "test",
+				MaxBytes: 10e6, // 10MB
+				MaxWait:  5 * time.Minute,
+			})
+			singleInstance = &Consumer{ReaderInstance: r}
 			return singleInstance
 		} else {
 			return singleInstance
@@ -61,12 +58,12 @@ func ConsumerMessage(ctx context.Context) error {
 	//	}
 	//}(r)
 	instance := GetInstance()
-	msg, err := instance.Reader.ReadMessage(ctx)
+	msg, err := instance.ReaderInstance.ReadMessage(ctx)
 	if err != nil {
 		return err
 	}
 	log.Printf("Consumed message in sub-workflow: %s\n", string(msg.Value))
-	if err := instance.Reader.CommitMessages(ctx, msg); err != nil {
+	if err := instance.ReaderInstance.CommitMessages(ctx, msg); err != nil {
 		return err
 	}
 	return nil

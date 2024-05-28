@@ -173,7 +173,7 @@ func GenConf() string {
 	if !b {
 		//
 		log.Println("KAFKA_HOME is not set")
-		return "kafka-service.default.svc.cluster.local:9092"
+		return "kraft-kafka.default.svc.cluster.local:9092"
 	}
 	return env
 }

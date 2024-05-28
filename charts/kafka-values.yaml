@@ -1,0 +1,38 @@
+image:
+  registry: docker.io
+  repository: bitnami/kafka
+  tag: 3.6.1-debian-11-r3
+  pullPolicy: IfNotPresent
+listeners:
+  client:
+    containerPort: 9092
+    protocol: PLAINTEXT
+    name: CLIENT
+  controller:
+    name: CONTROLLER
+    containerPort: 9093
+    protocol: PLAINTEXT
+    sslClientAuth: ""
+  external:
+    protocol: PLAINTEXT
+    name: EXTERNAL
+    sslClientAuth: ""
+controller:
+  replicaCount: 1
+broker:
+  replicaCount: 0
+service:
+  type: NodePort
+  ports:
+    client: 9092
+    controller: 9093
+    external: 9095
+
+kafka:
+  extraConfig: |
+    offsets.topic.replication.factor=1
+    transaction.state.log.replication.factor=1 
+
+
+kraft:
+  enabled: true

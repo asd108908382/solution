@@ -19,9 +19,9 @@ helm install temporal-server temporalio/temporal \
       --set elasticsearch.replicas=1
 
 echo " Installing Kafka"
-kubectl apply -f charts/kafka-configmap.yaml
-kubectl apply -f charts/kafka-statefulset.yaml
-kubectl apply -f charts/kafka-service.yaml
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install kafka-cluster oci://registry-1.docker.io/bitnamicharts/kafka --version "26.0.0" -f charts/kafka-values.yaml
 
 # Build Docker image for kafka-consumer using the project's Dockerfile
 echo "Building Docker image for solution..."

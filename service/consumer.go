@@ -31,8 +31,10 @@ func GetInstance() *Consumer {
 					Topic:    "demo",
 					GroupID:  "test",
 					MaxBytes: 10e6, // 10MB
+					MaxWait:  5 * time.Minute,
 				}),
 			}
+			return singleInstance
 		} else {
 			return singleInstance
 		}
@@ -44,26 +46,27 @@ func GetInstance() *Consumer {
 }
 
 func ConsumerMessage(ctx context.Context) error {
-	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  []string{GenConf()},
-		Topic:    "demo",
-		GroupID:  "test",
-		MaxBytes: 10e6, // 10MB
-		MaxWait:  2 * time.Millisecond,
-	})
-
-	defer func(r *kafka.Reader) {
-		err := r.Close()
-		if err != nil {
-
-		}
-	}(r)
-	msg, err := r.ReadMessage(ctx)
+	//r := kafka.NewReader(kafka.ReaderConfig{
+	//	Brokers:  []string{GenConf()},
+	//	Topic:    "demo",
+	//	GroupID:  "test",
+	//	MaxBytes: 10e6, // 10MB
+	//	MaxWait:  2 * time.Millisecond,
+	//})
+	//
+	//defer func(r *kafka.Reader) {
+	//	err := r.Close()
+	//	if err != nil {
+	//
+	//	}
+	//}(r)
+	instance := GetInstance()
+	msg, err := instance.Reader.ReadMessage(ctx)
 	if err != nil {
 		return err
 	}
 	log.Printf("Consumed message in sub-workflow: %s\n", string(msg.Value))
-	if err := r.CommitMessages(ctx, msg); err != nil {
+	if err := instance.Reader.CommitMessages(ctx, msg); err != nil {
 		return err
 	}
 	return nil

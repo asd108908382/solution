@@ -2,68 +2,43 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/segmentio/kafka-go"
 	"log"
 	"sync"
-	"time"
 )
 
-var lock = &sync.Mutex{}
+var (
+	readerInstance *kafka.Reader
+	readerOnce     sync.Once
+)
 
-type Consumer struct {
-	ReaderInstance *kafka.Reader
-}
-
-var singleInstance *Consumer
-
-func GetInstance() *Consumer {
-	if singleInstance == nil {
-		lock.Lock()
-		defer lock.Unlock()
-		if singleInstance == nil {
-			fmt.Println("Creating single instance now.")
-			r := kafka.NewReader(kafka.ReaderConfig{
-				Brokers:  []string{GenConf()},
-				Topic:    "demo",
-				GroupID:  "test",
-				MaxBytes: 10e6, // 10MB
-				MaxWait:  5 * time.Minute,
-			})
-			singleInstance = &Consumer{ReaderInstance: r}
-			return singleInstance
-		} else {
-			return singleInstance
+func getKafkaReader() *kafka.Reader {
+	readerOnce.Do(func() {
+		var err error
+		config := kafka.ReaderConfig{
+			Brokers:     []string{GenConf()},
+			Topic:       "demo",
+			GroupID:     "test",
+			MinBytes:    10e3, // 10KB
+			MaxBytes:    10e6, // 10MB
+			StartOffset: kafka.LastOffset,
 		}
-	} else {
-		return singleInstance
-	}
-
-	return singleInstance
+		readerInstance = kafka.NewReader(config)
+		if err != nil {
+			log.Fatalf("Error creating kafka reader: %v", err)
+		}
+	})
+	return readerInstance
 }
 
-func ConsumerMessage(ctx context.Context) error {
-	//r := kafka.NewReader(kafka.ReaderConfig{
-	//	Brokers:  []string{GenConf()},
-	//	Topic:    "demo",
-	//	GroupID:  "test",
-	//	MaxBytes: 10e6, // 10MB
-	//	MaxWait:  2 * time.Millisecond,
-	//})
-	//
-	//defer func(r *kafka.Reader) {
-	//	err := r.Close()
-	//	if err != nil {
-	//
-	//	}
-	//}(r)
-	instance := GetInstance()
-	msg, err := instance.ReaderInstance.ReadMessage(ctx)
+func consumerMessage(ctx context.Context) error {
+	instance := getKafkaReader()
+	msg, err := instance.ReadMessage(ctx)
 	if err != nil {
 		return err
 	}
 	log.Printf("Consumed message in sub-workflow: %s\n", string(msg.Value))
-	if err := instance.ReaderInstance.CommitMessages(ctx, msg); err != nil {
+	if err := instance.CommitMessages(ctx, msg); err != nil {
 		return err
 	}
 	return nil

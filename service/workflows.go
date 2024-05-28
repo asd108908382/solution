@@ -127,7 +127,7 @@ func ConsumerChildWorkflowFn(ctx workflow.Context) (string, error) {
 }
 
 func ConsumerChildActiveFn(ctx context.Context, lastRunTime, thisRunTime time.Time) error {
-	err := ConsumerMessage(ctx)
+	err := consumerMessage(ctx)
 	if err != nil {
 		log.Fatalln(err)
 		return err
